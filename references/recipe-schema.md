@@ -1,6 +1,32 @@
 # Cozina Recipe Schema Reference
 
-This document provides the complete field-by-field specification of the JSON object accepted by the `cozina_save_recipe` MCP tool. The schema mirrors the Cozina app's internal `Recipe`, `RecipeSection`, `Ingredient`, and `RecipeStep` data models.
+This document provides the complete field-by-field specification of the JSON object accepted by the `cozina_save_recipe` MCP tool.
+
+This is the public save payload, not the richer extraction schema used in `server/main.py`. Extraction and normalization use a broader schema first, then translate it into this payload before saving.
+
+## Schema Layers
+
+### Full Extraction Schema
+
+The extraction schema uses a richer object shape for parsing and normalization. Important differences:
+
+- Top-level recipe title is `name`, not `title`.
+- Ingredient name is `name`, not `item`.
+- `prep_time` and `cook_time` are numeric seconds, with `prep_time_text` and `cook_time_text` as the human-readable strings.
+- Additional extraction-only fields include `tool`, step metadata, and recipe metadata like `chef_tips`, `success_points`, `troubleshooting`, and `nutrition_label`.
+
+### Save Payload Bridge
+
+Translate extraction output into the `cozina_save_recipe` payload using these key mappings:
+
+| Extraction schema | Save payload | Notes |
+|---|---|---|
+| `name` | `title` | Top-level recipe title field changes names. |
+| `description` | `summary` | Save the extracted description as the summary. |
+| `ingredients[].name` | `ingredients[].item` | Ingredient field changes names. |
+| `prep_time_text` | `prep_time` | Save payload expects a human-readable string like `"15 min"`. |
+| `cook_time_text` | `cook_time` | Save payload expects a human-readable string like `"30 min"`. |
+| `metadata.nutrition_label` | `nutrition` | Only map supported fields: `calories`, `protein`, `carbs`, `fat`. |
 
 ## Top-Level Fields
 

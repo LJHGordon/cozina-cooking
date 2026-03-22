@@ -192,7 +192,117 @@ Frame the offer naturally: "Want me to save this to your Cozina?" rather than a 
 
 ## 4. Recipe Schema Quick Reference
 
-The `cozina_save_recipe` tool accepts this structure. See `references/recipe-schema.md` for the complete field-by-field documentation.
+There are two related recipe schemas in Cozina:
+
+1. The **full extraction schema** used when extracting and normalizing recipe data from URLs, videos, OCR, or conversation.
+2. The **MCP save payload** accepted by `cozina_save_recipe`.
+
+Do not treat them as the same object. Extract into the richer schema first, then translate into the save payload before calling `cozina_save_recipe`.
+
+### Full Recipe Extraction Schema
+
+This is the richer extraction shape defined in `server/main.py`.
+
+```json
+{
+  "name": "Recipe Name",
+  "author_name": "Original Creator Name",
+  "slug": "recipe-name-slug",
+  "description": "A brief, appetizing summary of the dish.",
+  "image_url": "https://example.com/recipe-image.jpg",
+  "video_timestamp": "2:45",
+  "servings": 4,
+  "cuisine": "Italian",
+  "cooking_method": "Roasting",
+  "language": "<TARGET_LANGUAGE>",
+  "total_time": "45 minutes",
+  "prep_time": 900,
+  "prep_time_text": "15 minutes",
+  "cook_time": 1800,
+  "cook_time_text": "30 minutes",
+  "recipe_category": ["Dinner", "Italian"],
+  "keywords": ["Healthy", "Vegetarian"],
+  "tool": ["Oven", "Whisk"],
+  "sections": [
+    {
+      "name": "Default",
+      "ingredients": [
+        {
+          "name": "Ingredient Name",
+          "quantity": 1.5,
+          "unit": "cup",
+          "notes": "optional",
+          "metadata": {
+            "substitutes": ["Alternative 1", "Alternative 2"],
+            "usda_tag": "Vegetables"
+          }
+        }
+      ],
+      "steps": [
+        {
+          "rank": 1,
+          "title": "Step Title",
+          "instruction": "Step instruction...",
+          "duration": 300,
+          "timestamp": null,
+          "is_passive": false,
+          "is_prep": false,
+          "equipment": ["oven"],
+          "metadata": {
+            "temp_mode": "400°F",
+            "tips": "Don't open the oven door!",
+            "warnings": "Hot steam.",
+            "critical": true
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "success_points": ["Use cold butter", "Don't overmix"],
+    "safety_warnings": ["Raw eggs", "Hot oil"],
+    "chef_tips": ["Rest the dough for 1 hour for best results."],
+    "troubleshooting": [
+      { "problem": "Dough is crumbly", "solution": "Add 1 tbsp water" }
+    ],
+    "equipment_with_alternatives": [
+      { "name": "Stand Mixer", "alternative": "Hand mixer or strong arm" }
+    ],
+    "dietary_tags": ["Gluten-Free", "Keto-Friendly"],
+    "allergen_tags": ["Dairy", "Eggs"],
+    "nutrition_label": {
+      "calories": 350,
+      "total_fat": "15g",
+      "saturated_fat": "5g",
+      "trans_fat": "0g",
+      "cholesterol": "45mg",
+      "sodium": "400mg",
+      "total_carbohydrates": "40g",
+      "dietary_fiber": "3g",
+      "sugars": "5g",
+      "protein": "12g"
+    }
+  }
+}
+```
+
+### Extraction To Save Payload Bridge
+
+Translate the extraction schema into the public save payload before calling `cozina_save_recipe`.
+
+| Extraction schema | Save payload | Notes |
+|---|---|---|
+| `name` | `title` | Top-level recipe title field changes names. |
+| `description` | `summary` | Use the extracted description as the recipe summary when saving. |
+| `ingredients[].name` | `ingredients[].item` | Ingredient field changes names. |
+| `prep_time` / `cook_time` | `prep_time` / `cook_time` | Extraction uses numeric seconds; save payload uses human-readable text strings. Prefer `prep_time_text` and `cook_time_text` when available. |
+| `metadata.nutrition_label` | `nutrition` | Save payload only supports `calories`, `protein`, `carbs`, and `fat`. |
+
+Fields such as `author_name`, `slug`, `video_timestamp`, `language`, `total_time`, `recipe_category`, `tool`, step metadata, and recipe metadata like `chef_tips` or `success_points` are useful during extraction and reasoning, but they are not part of the current `cozina_save_recipe` contract unless you explicitly map them into supported fields.
+
+### MCP Save Payload
+
+The `cozina_save_recipe` tool accepts this structure. See `references/recipe-schema.md` for the complete field-by-field documentation of the save payload.
 
 ```json
 {
