@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cozina Cooking"
+  short_description: "Import recipes, plan meals, and manage shopping lists through Cozina"
+  default_prompt: "Use $cozina-cooking to import recipes into Cozina, plan my next 7 days of meals, or manage my shopping list."
