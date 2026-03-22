@@ -24,10 +24,12 @@ This skill enables four core capabilities:
 3. **Meal Planning & Shopping Lists** -- Build a 7-day plan from the user's saved recipes and persist the resulting meal plan and shopping list into Cozina.
 4. **Account & Usage Awareness** -- Check the user's credit balance, subscription tier, and collection organization to provide context-appropriate guidance.
 
-All operations use the `cozina-mcp` MCP server. Saving a recipe consumes zero AI credits -- always offer to save.
+All operations use the local `cozina-mcp` MCP server. Saving a recipe consumes zero AI credits -- always offer to save.
 
 
 ## 2. Prerequisites
+
+This skill assumes the current client can run a local MCP server. If the user is in a mainstream consumer chat app that cannot attach local MCP servers directly, explain that Cozina's current install flow will not work there yet.
 
 ### Verify MCP Server Availability
 
@@ -50,7 +52,7 @@ If any tool is missing, the MCP server is not configured. Guide the user through
 1. Open Cozina on iOS or the web.
 2. Navigate to **Settings > API Access**.
 3. Tap or click **Generate Token**. Leave both `read` and `write` enabled unless the user explicitly wants a browse-only token, then copy the token immediately. It is only shown once.
-4. Add the following to the Claude MCP configuration file (`.claude/mcp.json` or equivalent):
+4. Use Cozina's generated install prompt first, or add the following to the local MCP configuration file for the current host (`.claude/mcp.json` or equivalent):
 
 ```json
 {
@@ -66,7 +68,7 @@ If any tool is missing, the MCP server is not configured. Guide the user through
 }
 ```
 
-5. Restart the Claude session so the MCP server initializes.
+5. Restart the local MCP host session so the MCP server initializes.
 
 Do not attempt recipe operations until the token is confirmed working. Call `cozina_get_usage` as a connectivity test -- if it returns data, the server is live.
 

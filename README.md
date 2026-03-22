@@ -1,6 +1,6 @@
 # Cozina Cooking
 
-`cozina-cooking` is the public skill bundle for using Cozina with AI assistants through `cozina-mcp`.
+`cozina-cooking` is the public skill bundle for using Cozina with local MCP-capable AI assistants through `cozina-mcp`.
 
 It supports:
 
@@ -15,7 +15,8 @@ It supports:
    - Web: `Settings > API Access`
    - iOS: `Settings > API Access`
 2. Leave both `read` and `write` enabled unless you explicitly want browse-only access.
-3. Install the MCP server:
+3. Preferred: paste Cozina's install prompt into your local MCP-capable AI agent after generating the token.
+4. If your host needs JSON config, install the MCP server with:
 
 ```json
 {
@@ -31,11 +32,13 @@ It supports:
 }
 ```
 
-You can also paste Cozina's install prompt directly into your AI agent or OpenClaw bot after generating a token.
+Cozina currently works through a local MCP server. Use a local MCP-capable host such as OpenClaw, Claude Code, Cursor, or a similar MCP client.
+
+The current local install flow does not work directly in mainstream consumer chat apps like ChatGPT, Gemini, or Grok.
 
 ## Use
 
-After install, ask your AI agent to use `$cozina-cooking` for workflows like:
+After install, ask your local MCP-capable AI agent to use `$cozina-cooking` for workflows like:
 
 - save this recipe to Cozina
 - plan my next 7 days of meals from my saved recipes
