@@ -123,9 +123,11 @@ No `HowToSection` objects found, so all instructions go into one section named "
 **User:**
 > Yes, save it to my "Comfort Food" cookbook.
 
-### Step 5: Resolve Cookbook ID
+### Step 5: Resolve Or Create Cookbook
 
-Call `cozina_list_cookbooks`. Find the cookbook named "Comfort Food" and get its UUID.
+Call `cozina_list_cookbooks`. If "Comfort Food" already exists, use its UUID.
+
+If it does not exist yet, ask for confirmation, then call `cozina_create_cookbook({ "name": "Comfort Food" })` and use the returned UUID.
 
 ### Step 6: Save via MCP
 

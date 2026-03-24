@@ -10,6 +10,9 @@ This document describes the Cozina workflows that are currently available throug
 | `cozina_list_recipes` | Search and browse recipes with filters. |
 | `cozina_get_recipe` | Retrieve full recipe detail. |
 | `cozina_list_cookbooks` | List the user's cookbooks with recipe counts. |
+| `cozina_create_cookbook` | Create a normal personal cookbook, or return the existing one if the name already exists. |
+| `cozina_rename_cookbook` | Rename a normal personal cookbook. |
+| `cozina_delete_cookbook` | Delete a normal personal cookbook without deleting its recipes. |
 | `cozina_get_usage` | Check subscription tier and usage. |
 | `cozina_get_meal_plan` | Read the user's next 7 days of planned meals. |
 | `cozina_save_meal_plan` | Save meal-plan entries for a date range. |
@@ -69,7 +72,38 @@ When the user asks for a shopping list:
 - `cozina_generate_shopping_list`
 - `cozina_set_shopping_list_item_checked`
 
-## 3. Cookbook-Aware Recommendations
+## 3. Cookbook Management
+
+### What the assistant should do
+
+When the user asks to create, rename, or delete a cookbook:
+
+1. Call `cozina_list_cookbooks` first.
+2. Create missing normal personal cookbooks with `cozina_create_cookbook`.
+3. Rename normal personal cookbooks with `cozina_rename_cookbook`.
+4. Delete normal personal cookbooks with `cozina_delete_cookbook`.
+5. Do not rename or delete protected cookbooks:
+   - `Favorites`
+   - `Liked Recipes`
+   - `Breakfast`
+   - `Lunch`
+   - `Dinner`
+
+### Data model
+
+- v1 cookbook creation is name-only.
+- Duplicate cookbook creates return the existing cookbook.
+- Deleting a cookbook removes the cookbook and its cookbook memberships, but leaves the recipes in All Recipes.
+- Family/shared cookbook management is not exposed through MCP in this version.
+
+### Related tools
+
+- `cozina_list_cookbooks`
+- `cozina_create_cookbook`
+- `cozina_rename_cookbook`
+- `cozina_delete_cookbook`
+
+## 4. Cookbook-Aware Recommendations
 
 Recipe suggestions still begin with the user's existing collection.
 
@@ -78,16 +112,18 @@ Recipe suggestions still begin with the user's existing collection.
 3. Suggest recipes before creating new imports.
 4. If the user wants the week saved, convert the accepted picks into `cozina_save_meal_plan` entries.
 
-## 4. Recipe Import And Save
+## 5. Recipe Import And Save
 
 Recipe extraction behavior is unchanged:
 
 1. Extract the recipe from URL, text, image, or conversation.
 2. Present the structured result for confirmation.
-3. Save with `cozina_save_recipe`.
-4. Offer to add the new recipe to the user's upcoming meal plan or shopping list.
+3. If the user named a cookbook, call `cozina_list_cookbooks` to resolve it first.
+4. If the cookbook does not exist yet, ask for confirmation and create it with `cozina_create_cookbook`.
+5. Save with `cozina_save_recipe`.
+6. Offer to add the new recipe to the user's upcoming meal plan or shopping list.
 
-## 5. Usage Guidance
+## 6. Usage Guidance
 
 When the user asks about their account or credits:
 

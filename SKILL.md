@@ -20,7 +20,7 @@ Cozina is a recipe management and cooking app available on iOS, iPadOS, and the 
 This skill enables four core capabilities:
 
 1. **Recipe Extraction & Save** -- Extract structured recipe data from any source (URL, pasted text, image, or freeform conversation) and save it to the user's Cozina account.
-2. **Cookbook-Aware Suggestions** -- Query the user's existing recipe collection to provide personalized cooking suggestions, filtered by cuisine, ingredient, keyword, or cookbook.
+2. **Cookbook Management & Suggestions** -- Query the user's existing recipe collection, create or rename normal personal cookbooks, and provide personalized cooking suggestions filtered by cuisine, ingredient, keyword, or cookbook.
 3. **Meal Planning & Shopping Lists** -- Build a 7-day plan from the user's saved recipes and persist the resulting meal plan and shopping list into Cozina.
 4. **Account & Usage Awareness** -- Check the user's credit balance, subscription tier, and collection organization to provide context-appropriate guidance.
 
@@ -39,6 +39,9 @@ Check that the `cozina-mcp` MCP tools are available in the current session. The 
 - `cozina_list_recipes`
 - `cozina_get_recipe`
 - `cozina_list_cookbooks`
+- `cozina_create_cookbook`
+- `cozina_rename_cookbook`
+- `cozina_delete_cookbook`
 - `cozina_get_usage`
 - `cozina_get_meal_plan`
 - `cozina_save_meal_plan`
@@ -136,7 +139,33 @@ When the user asks "what should I cook" or similar:
 5. When the user picks a recipe, call `cozina_get_recipe` to retrieve full details including all sections, ingredients, and steps.
 6. Present the full recipe in a clean, readable format: ingredients first, then steps grouped by section.
 
-### 3.4 Meal Planning
+### 3.4 Cookbook Management
+
+When the user asks to create, rename, or delete a cookbook:
+
+1. Call `cozina_list_cookbooks` first so you understand the user's current organization and can detect duplicates.
+2. For cookbook creation:
+   - if the requested cookbook already exists, use the existing cookbook instead of creating a duplicate
+   - otherwise call `cozina_create_cookbook`
+3. For rename requests, call `cozina_rename_cookbook`.
+4. For delete requests, call `cozina_delete_cookbook`.
+5. Do not attempt to rename or delete these protected cookbooks:
+   - `Favorites`
+   - `Liked Recipes`
+   - `Breakfast`
+   - `Lunch`
+   - `Dinner`
+6. Deleting a cookbook removes the cookbook container only. The recipes remain in the user's account and still appear in All Recipes.
+
+When the user asks to save a recipe into a cookbook by name:
+
+1. Call `cozina_list_cookbooks`.
+2. If the cookbook exists, use its UUID as `cookbook_id`.
+3. If it does not exist, ask for confirmation before creating it.
+4. Call `cozina_create_cookbook`.
+5. Save the recipe with the returned `cookbook_id`.
+
+### 3.5 Meal Planning
 
 When the user asks for a weekly plan, a next-7-days plan, or help filling their planner:
 
@@ -149,7 +178,7 @@ When the user asks for a weekly plan, a next-7-days plan, or help filling their 
 
 Use `cozina_get_meal_plan` whenever the user asks what is already planned or wants adjustments to an existing week.
 
-### 3.5 Shopping Lists
+### 3.6 Shopping Lists
 
 When the user asks for a shopping list:
 
@@ -162,7 +191,7 @@ When the user asks for a shopping list:
 
 The shopping list is persisted into Cozina. Do not describe it as a text-only workaround.
 
-### 3.6 Error Handling & Edge Cases
+### 3.7 Error Handling & Edge Cases
 
 **URL fails to load:** Some recipe websites block automated fetching (paywalled content, aggressive bot detection). If the page content cannot be retrieved, ask the user to paste the recipe text or share a screenshot instead. Do not retry the URL repeatedly.
 
@@ -170,9 +199,13 @@ The shopping list is persisted into Cozina. Do not describe it as a text-only wo
 
 **Duplicate detection:** Before saving, check if a recipe with the same title and source URL already exists by calling `cozina_list_recipes` with a query matching the title. If a likely duplicate is found, inform the user: "You already have a recipe called 'Chicken Parmesan' from this URL. Want me to save it as a new copy, or skip?"
 
+**Cookbook creation by name:** If the user names a cookbook that does not exist yet, ask for confirmation before creating it. Use `cozina_create_cookbook`, then continue with the save flow using the returned `cookbook_id`.
+
+**Protected cookbooks:** If the user asks to rename or delete `Favorites`, `Liked Recipes`, `Breakfast`, `Lunch`, or `Dinner`, explain that Cozina protects those cookbook names from MCP edits.
+
 **Non-recipe URLs:** If the user shares a URL that does not contain a recipe (a blog post, a restaurant menu, a video without recipe data), say so clearly. Do not fabricate recipe data from non-recipe content.
 
-### 3.7 Usage & Profile
+### 3.8 Usage & Profile
 
 When the user asks about their account, credits, or subscription:
 
@@ -181,7 +214,7 @@ When the user asks about their account, credits, or subscription:
 3. Break down usage by action type if the `by_action` map contains data.
 4. If credits are low, note that saving recipes is always free -- only AI-powered features (remix, chat, generation) consume credits.
 
-### 3.8 Save Offer Policy
+### 3.9 Save Offer Policy
 
 Always offer to save a recipe when:
 - The user shares a URL that contains a recipe
