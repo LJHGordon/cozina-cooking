@@ -122,7 +122,7 @@ Call `cozina_save_recipe` with the structured JSON. No `cookbook_id` specified, 
 ### Step 6: Report Result
 
 **Assistant response:**
-> Saved. "Grandma's Chicken Soup" is in your Cozina now. You can assign it to a cookbook from the recipe detail screen if you want to organize it.
+> Saved. "Grandma's Chicken Soup" is in your Cozina now. If you want, I can also create a cookbook for it and organize future imports there.
 
 
 ## Key Patterns in Conversation Extraction
